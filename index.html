@@ -3,56 +3,54 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Masrawy Warehouse Input</title>
+  <title>Masrawy Warehouse Entry</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; background:#f5f5f5; padding:20px; }
-    .form-container, .records-container { background:white; border-radius:8px; padding:20px; max-width:500px; margin:20px auto; }
-    .btn { background:#d4af37; border:none; padding:10px; width:100%; cursor:pointer; margin-top:10px; }
-    .btn:hover { background:#bfa233; }
-    .record-item { border-bottom:1px solid #ddd; padding:5px 0; }
+    body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
+    .container { background: white; border-radius: 8px; padding: 20px; max-width: 500px; margin: auto; }
+    input, button { display: block; width: 100%; padding: 10px; margin-bottom: 10px; }
+    button { background: #d4af37; border: none; cursor: pointer; }
+    button:hover { background: #bfa233; }
+    .record-item { border-bottom: 1px solid #ddd; padding: 5px 0; }
   </style>
 </head>
 <body>
-  <div class="form-container">
-    <h2 class="text-2xl font-bold mb-4">أدخل بيانات المنتج</h2>
-    <form id="data-form">
-      <input type="text" id="productName" placeholder="اسم المنتج" required class="p-2 border rounded w-full mb-2" />
-      <input type="number" id="quantity" placeholder="الكمية" required class="p-2 border rounded w-full mb-2" />
-      <textarea id="notes" placeholder="ملاحظات (اختياري)" class="p-2 border rounded w-full mb-2"></textarea>
-      <button type="submit" class="btn">حفظ البيانات</button>
-    </form>
-  </div>
 
-  <div class="records-container">
-    <h2 class="text-xl font-bold mb-4">البيانات المسجّلة</h2>
+  <div class="container">
+    <h2 class="text-2xl font-bold mb-4">سجّل بيانات المنتج</h2>
+    <form id="product-form">
+      <input type="text" id="productName" placeholder="اسم المنتج" required />
+      <input type="number" id="quantity" placeholder="الكمية" required />
+      <button type="submit">حفظ البيانات</button>
+    </form>
+
+    <h2 class="text-xl font-bold mb-4">البيانات المسجلة</h2>
     <div id="records-list"></div>
   </div>
 
   <script>
-    // إعداد Firebase - تأكد إن البيانات تحت نفس project
+    // إعداد Firebase — استبدل القيم بقيم مشروعك
     const firebaseConfig = {
-      apiKey: "...",
+      apiKey: "AIzaSyD3BZ_KM7LQH-QLR9WQmqVXjrpGMVcdlns",
       authDomain: "masrawy-site.firebaseapp.com",
       databaseURL: "https://masrawy-site-default-rtdb.firebaseio.com",
       projectId: "masrawy-site",
       storageBucket: "masrawy-site.appspot.com",
       messagingSenderId: "852741312702",
-      appId: "1:852741312702:web:d67a601d115303ca4eef"
+      appId: "1:852741312702:web:d67a601d115303ca5a4eef"
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const recordsRef = db.ref('records');
 
-    // حفظ البيانات
-    document.getElementById('data-form').addEventListener('submit', function(e) {
+    // عند الضغط "Submit" يتم حفظ البيانات في Firebase
+    document.getElementById('product-form').addEventListener('submit', function(e) {
       e.preventDefault();
       const data = {
-        product: this.productName.value,
+        product: this.productName.value.trim(),
         quantity: parseInt(this.quantity.value),
-        notes: this.notes.value,
         timestamp: Date.now()
       };
       recordsRef.push(data)
@@ -60,7 +58,7 @@
         .catch(err => alert('خطأ في الحفظ: ' + err.message));
     });
 
-    // عرض البيانات المسجلة في الصفحة
+    // يعرض البيانات المسجّلة تلقائيًا في الصفحة
     const recordsList = document.getElementById('records-list');
     recordsRef.on('value', snapshot => {
       const all = snapshot.val() || {};
@@ -69,10 +67,11 @@
         const div = document.createElement('div');
         div.className = 'record-item';
         const date = new Date(item.timestamp).toLocaleString();
-        div.textContent = منتج: ${item.product} – الكمية: ${item.quantity} – ملاحظات: ${item.notes || "-"} – الوقت: ${date};
+        div.textContent = المنتج: ${item.product} – الكمية: ${item.quantity} – الوقت: ${date};
         recordsList.appendChild(div);
       });
     });
   </script>
+
 </body>
 </html>
