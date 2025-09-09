@@ -7,6 +7,28 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.1/dist/umd/lucide.js"></script>
     <style>
+        // Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyD3BZ_KM7LQH-QLR9WQmqVXjrpGMVcdlns",
+  authDomain: "masrawy-site.firebaseapp.com",
+  databaseURL: "https://masrawy-site-default-rtdb.firebaseio.com",
+  projectId: "masrawy-site",
+  storageBucket: "masrawy-site.firebasestorage.app",
+  messagingSenderId: "852741312702",
+  appId: "1:852741312702:web:d67a601d115303ca5a4eef",
+  measurementId: "G-G85DB7L56C"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
         body {
             font-family: 'Arial', sans-serif;
             background: linear-gradient(135deg, #f5f5dc 0%, #d4af37 100%);
