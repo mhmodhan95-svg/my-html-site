@@ -5,8 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Masrawy Warehouse Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.1/dist/umd/lucide.js"></script>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -41,90 +45,108 @@
         button:hover.bg-accent {
             background-color: #a68f2a !important;
         }
+        /* Login/Register modal input styles */
+        #auth-modal .bg-black {
+            background-color: #000000 !important;
+        }
+        #auth-modal input,
+        #auth-modal select {
+            color: #d4af37;
+            border-color: #d4af37;
+            background-color: #000000;
+        }
+        #auth-modal input::placeholder,
+        #auth-modal select::placeholder {
+            color: #d4af37;
+            opacity: 0.7;
+        }
+        /* Simple form styling */
+        .simple-form {
+            margin: 20px auto;
+            max-width: 400px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .simple-form input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #d4af37;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        .simple-form button {
+            width: 100%;
+            padding: 10px;
+            background-color: #d4af37;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            color: black;
+        }
+        .simple-form button:hover {
+            background-color: #bfa233;
+        }
     </style>
 </head>
 <body class="fade-in">
-    <!-- Header -->
-    <header class="bg-primary text-secondary p-6 shadow-lg-custom">
-        <div class="container mx-auto flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <div class="text-4xl font-bold">Masrawy</div>
-                <div class="text-lg">Warehouse Management System</div>
-            </div>
-        </div>
-    </header>
 
-    <!-- Form to enter user name -->
-    <div class="container mx-auto p-6">
-        <h2 class="text-2xl font-bold mb-4">Register Your Name</h2>
-        <form id="name-form" class="mb-6">
-            <input type="text" id="username" placeholder="Enter your name" required class="p-3 border rounded w-full max-w-md" />
-            <button type="submit" class="mt-4 bg-secondary px-6 py-2 rounded hover:bg-accent transition text-black">Submit</button>
-        </form>
+    <!-- Your existing header and content here ... -->
 
-        <h2 class="text-2xl font-bold mb-4">Registered Users</h2>
-        <ul id="users-list" class="max-w-md space-y-2"></ul>
+    <!-- Simple Visitor Name Form -->
+    <div class="simple-form">
+        <h2 class="text-primary font-bold mb-4">Enter Your Name</h2>
+        <input type="text" id="visitorName" placeholder="Your name" />
+        <button onclick="saveVisitor()">Save Name</button>
     </div>
 
+    <!-- Firebase and app scripts -->
     <script>
-        // Firebase config
+        // Firebase config (تأكد تستخدم بيانات مشروعك الخاصة)
         const firebaseConfig = {
-          apiKey: "AIzaSyD3BZ_KM7LQH-QLR9WQmqVXjrpGMVcdlns",
-          authDomain: "masrawy-site.firebaseapp.com",
-          databaseURL: "https://masrawy-site-default-rtdb.firebaseio.com",
-          projectId: "masrawy-site",
-          storageBucket: "masrawy-site.appspot.com",
-          messagingSenderId: "852741312702",
-          appId: "1:852741312702:web:d67a601d115303ca5a4eef",
-          measurementId: "G-G85DB7L56C"
+            apiKey: "AIzaSyD3BZ_KM7LQH-QLR9WQmqVXjrpGMVcdlns",
+            authDomain: "masrawy-site.firebaseapp.com",
+            databaseURL: "https://masrawy-site-default-rtdb.firebaseio.com",
+            projectId: "masrawy-site",
+            storageBucket: "masrawy-site.appspot.com",
+            messagingSenderId: "852741312702",
+            appId: "1:852741312702:web:d67a601d115303ca5a4eef",
+            measurementId: "G-G85DB7L56C"
         };
 
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
+
+        // Get a reference to the database service
         const database = firebase.database();
 
-        // Reference to users node
-        const usersRef = database.ref('users');
-
-        // Form submission
-        const form = document.getElementById('name-form');
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const nameInput = document.getElementById('username');
+        // Save visitor name to Firebase Realtime Database
+        function saveVisitor() {
+            const nameInput = document.getElementById('visitorName');
             const name = nameInput.value.trim();
-            if (name) {
-                // Save to Firebase
-                const newUserRef = usersRef.push();
-                newUserRef.set({
-                    name: name,
-                    timestamp: Date.now()
-                })
-                .then(() => {
-                    alert('Name saved successfully!');
-                    nameInput.value = '';
-                })
-                .catch(error => {
-                    alert('Error saving name: ' + error.message);
-                });
-            }
-        });
 
-        // Listen for changes and display users
-        const usersList = document.getElementById('users-list');
-        usersRef.on('value', snapshot => {
-            const users = snapshot.val();
-            usersList.innerHTML = '';
-            if (users) {
-                Object.entries(users).forEach(([id, user]) => {
-                    const li = document.createElement('li');
-                    const date = new Date(user.timestamp).toLocaleString();
-                    li.textContent = ${user.name} (Registered at: ${date});
-                    usersList.appendChild(li);
-                });
-            } else {
-                usersList.innerHTML = '<li>No users registered yet.</li>';
+            if (name === '') {
+                alert('Please enter your name.');
+                return;
             }
-        });
+
+            // Generate a new visitor key
+            const newVisitorRef = database.ref('visitors').push();
+            newVisitorRef.set({
+                name: name,
+                timestamp: Date.now()
+            })
+            .then(() => {
+                alert('Name saved successfully!');
+                nameInput.value = '';
+            })
+            .catch((error) => {
+                alert('Error saving name: ' + error.message);
+            });
+        }
     </script>
 </body>
 </html>
