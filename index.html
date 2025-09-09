@@ -308,7 +308,7 @@ const analytics = getAnalytics(app);
             expiring.forEach(item => {
                 const alertDiv = document.createElement('div');
                 alertDiv.className = 'p-4 rounded alert-expiry';
-                alertDiv.innerHTML = `<p><strong>${item.product}</strong> expires on ${item.expiry} (Quantity: ${item.quantity})</p>`;
+                alertDiv.innerHTML = <p><strong>${item.product}</strong> expires on ${item.expiry} (Quantity: ${item.quantity})</p>;
                 expiryList.appendChild(alertDiv);
             });
         }
@@ -344,7 +344,7 @@ const analytics = getAnalytics(app);
             }
 
             reportData.forEach(item => {
-                display.innerHTML += `<p>${item.type.charAt(0).toUpperCase() + item.type.slice(1)}: <strong>${item.product}</strong> - Qty: ${item.quantity} - To/From: ${item.branch} on ${item.date}</p>`;
+                display.innerHTML += <p>${item.type.charAt(0).toUpperCase() + item.type.slice(1)}: <strong>${item.product}</strong> - Qty: ${item.quantity} - To/From: ${item.branch} on ${item.date}</p>;
             });
         }
 
