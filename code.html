@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Masrawy Warehouse Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.1/dist/umd/lucide.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #f5f5dc 0%, #d4af37 100%);
+            min-height: 100vh;
+            color: #000000;
+        }
+        .fade-in {
+            animation: fadeIn 1s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .shadow-lg-custom {
+            box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+        }
+        .bg-primary { background-color: #000000; }
+        .bg-secondary { background-color: #d4af37; }
+        .bg-accent { background-color: #bfa233; }
+        .text-primary { color: #000000; }
+        .text-secondary { color: #d4af37; }
+        .text-accent { color: #bfa233; }
+        .alert-expiry {
+            background-color: #fff8dc;
+            border-left: 4px solid #d4af37;
+            color: #000000;
+        }
+        button:hover.bg-secondary {
+            background-color: #bfa233 !important;
+        }
+        button:hover.bg-accent {
+            background-color: #a68f2a !important;
+        }
+        /* Login/Register modal input styles */
+        #auth-modal .bg-black {
+            background-color: #000000 !important;
+        }
+        #auth-modal input,
+        #auth-modal select {
+            color: #d4af37;
+            border-color: #d4af37;
+            background-color: #000000;
+        }
+        #auth-modal input::placeholder,
+        #auth-modal select::placeholder {
+            color: #d4af37;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body class="fade-in">
+    <!-- Header -->
+    <header class="bg-primary text-secondary p-6 shadow-lg-custom">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="text-4xl font-bold">Masrawy</div>
+                <div class="text-lg">Warehouse Management System</div>
+            </div>
+            <div class="flex space-x-4">
+                <button id="login-btn" onclick="showLogin()" class="bg-secondary px-4 py-2 rounded-lg hover:bg-accent transition">Login</button>
+                <button id="register-btn" onclick="showRegister()" class="bg-secondary px-4 py-2 rounded-lg hover:bg-accent transition">Register</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Login/Register Modal -->
+    <div id="auth-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center hidden z-50">
+        <div class="bg-black p-8 rounded-lg shadow-lg-custom w-full max-w-md text-secondary">
+            <h2 id="auth-title" class="text-2xl font-bold mb-6 text-center text-secondary"></h2>
+            <form id="auth-form" onsubmit="handleAuth(event)">
+                <input type="email" id="email" placeholder="Email" required class="w-full p-3 mb-4 border rounded" />
+                <input type="password" id="password" placeholder="Password" required class="w-full p-3 mb-4 border rounded" />
+                <div id="role-field" class="mb-4 hidden">
+                    <select id="role" class="w-full p-3 border rounded">
+                        <option value="staff">Warehouse Staff</option>
+                        <option value="manager">Manager</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-secondary text-black p-3 rounded hover:bg-accent transition">Submit</button>
+                <button type="button" onclick="closeModal()" class="w-full mt-2 bg-primary text-secondary p-3 rounded hover:bg-accent transition">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="container mx-auto p-6 fade-in" id="dashboard">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-lg shadow-lg-custom text-center">
+                <h3 class="text-xl font-semibold text-primary mb-2">Total Products</h3>
+                <p id="total-products" class="text-3xl font-bold text-secondary">0</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-lg-custom text-center">
+                <h3 class="text-xl font-semibold text-primary mb-2">Items Expiring Soon</h3>
+                <p id="expiring-soon" class="text-3xl font-bold text-accent">0</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-lg-custom text-center">
+                <h3 class="text-xl font-semibold text-primary mb-2">Recent Transactions</h3>
+                <p id="recent-transactions" class="text-3xl font-bold text-secondary">0</p>
+            </div>
+        </div>
+
+        <!-- Tabs for Sections -->
+        <div class="bg-white p-6 rounded-lg shadow-lg-custom">
+            <div class="flex border-b mb-6">
+                <button onclick="showSection('receive')" class="tab-btn active px-4 py-2 text-primary font-semibold border-b-2 border-secondary">Receive Products</button>
+                <button onclick="showSection('issue')" class="tab-btn px-4 py-2 text-gray-700 font-semibold">Issue Products</button>
+                <button onclick="showSection('inventory')" class="tab-btn px-4 py-2 text-gray-700 font-semibold">Inventory Reports</button>
+                <button onclick="showSection('expiry')" class="tab-btn px-4 py-2 text-gray-700 font-semibold">Expiry Alerts</button>
+            </div>
+
+            <!-- Receive Products Form -->
+            <div id="receive-section" class="section-content">
+                <h3 class="text-2xl font-bold text-primary mb-4">Receive Products</h3>
+                <form id="receive-form" onsubmit="handleTransaction(event, 'receive')">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input type="text" id="receive-product" placeholder="Product Name" required class="p-3 border rounded" />
+                        <input type="number" id="receive-quantity" placeholder="Quantity" required class="p-3 border rounded" />
+                        <input type="date" id="receive-expiry" required class="p-3 border rounded" />
+                        <select id="receive-entity" required class="p-3 border rounded">
+                            <option value="supplier">From Supplier</option>
+                            <option value="central-kitchen">From Central Kitchen</option>
+                        </select>
+                        <input type="text" id="receive-branch" placeholder="Entity/Branch Name" required class="p-3 border rounded" />
+                        <textarea id="receive-notes" placeholder="Notes" class="p-3 border rounded md:col-span-2"></textarea>
+                        <input type="file" id="receive-invoice" accept=".pdf,.jpg,.png" class="p-3 border rounded md:col-span-2" />
+                    </div>
+                    <button type="submit" class="mt-4 w-full bg-secondary text-black p-3 rounded hover:bg-accent transition">Submit Receive</button>
+                </form>
+            </div>
+
+            <!-- Issue Products Form -->
+            <div id="issue-section" class="section-content hidden">
+                <h3 class="text-2xl font-bold text-primary mb-4">Issue Products</h3>
+                <form id="issue-form" onsubmit="handleTransaction(event, 'issue')">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input type="text" id="issue-product" placeholder="Product Name" required class="p-3 border rounded" />
+                        <input type="number" id="issue-quantity" placeholder="Quantity" required class="p-3 border rounded" />
+                        <input type="date" id="issue-expiry" required class="p-3 border rounded" />
+                        <select id="issue-entity" required class="p-3 border rounded">
+                            <option value="branch">To Branch</option>
+                            <option value="central-kitchen">To Central Kitchen</option>
+                        </select>
+                        <input type="text" id="issue-branch" placeholder="Entity/Branch Name" required class="p-3 border rounded" />
+                        <textarea id="issue-notes" placeholder="Notes" class="p-3 border rounded md:col-span-2"></textarea>
+                        <input type="file" id="issue-invoice" accept=".pdf,.jpg,.png" class="p-3 border rounded md:col-span-2" />
+                    </div>
+                    <button type="submit" class="mt-4 w-full bg-secondary text-black p-3 rounded hover:bg-accent transition">Submit Issue</button>
+                </form>
+            </div>
+
+            <!-- Inventory Reports -->
+            <div id="inventory-section" class="section-content hidden">
+                <h3 class="text-2xl font-bold text-primary mb-4">Inventory Reports</h3>
+                <select id="report-period" class="p-3 border rounded mb-4">
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="annual">Annual</option>
+                </select>
+                <button onclick="generateReport()" class="bg-accent px-6 py-2 rounded hover:bg-yellow-600 transition text-black">Generate Report</button>
+                <div id="report-display" class="mt-6 bg-gray-100 p-4 rounded max-h-60 overflow-y-auto text-black"></div>
+            </div>
+
+            <!-- Expiry Alerts -->
+            <div id="expiry-section" class="section-content hidden">
+                <h3 class="text-2xl font-bold text-primary mb-4">Products Expiring Soon</h3>
+                <div id="expiry-list" class="space-y-4 max-h-60 overflow-y-auto">
+                    <!-- Alerts populated dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-primary text-secondary text-center p-4 mt-8">
+        <p>© 2023 Masrawy Restaurant. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Sample data storage (in real app, use backend)
+        let products = [];
+        let transactions = [];
+        let users = [];
+
+        // Show/Hide Sections
+        function showSection(section) {
+            document.querySelectorAll('.section-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(section + '-section').classList.remove('hidden');
+            event.target.classList.add('active');
+            event.target.classList.add('border-b-2');
+            event.target.classList.add('border-secondary');
+        }
+
+        // Auth Modals
+        function showLogin() {
+            document.getElementById('auth-title').textContent = 'Login';
+            document.getElementById('role-field').classList.add('hidden');
+            document.getElementById('auth-modal').classList.remove('hidden');
+        }
+
+        function showRegister() {
+            document.getElementById('auth-title').textContent = 'Register';
+            document.getElementById('role-field').classList.remove('hidden');
+            document.getElementById('auth-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('auth-modal').classList.add('hidden');
+        }
+
+        function handleAuth(event) {
+            event.preventDefault();
+            const isRegister = document.getElementById('auth-title').textContent === 'Register';
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const role = isRegister ? document.getElementById('role').value : null;
+
+            if (isRegister) {
+                users.push({ email, password, role });
+                alert('Registered successfully!');
+            } else {
+                const user = users.find(u => u.email === email && u.password === password);
+                if (user) {
+                    alert('Logged in as ' + user.role);
+                } else {
+                    alert('Invalid credentials');
+                }
+            }
+            closeModal();
+        }
+
+        // Handle Transactions
+        function handleTransaction(event, type) {
+            event.preventDefault();
+            const form = event.target;
+            const data = {
+                product: form.querySelector('#' + type + '-product').value,
+                quantity: parseInt(form.querySelector('#' + type + '-quantity').value),
+                expiry: form.querySelector('#' + type + '-expiry').value,
+                entity: form.querySelector('#' + type + '-entity').value,
+                branch: form.querySelector('#' + type + '-branch').value,
+                notes: form.querySelector('#' + type + '-notes').value,
+                invoice: form.querySelector('#' + type + '-invoice').files[0],
+                type: type,
+                date: new Date().toISOString().split('T')[0]
+            };
+            transactions.push(data);
+            if (type === 'receive') {
+                products.push(data);
+            } else {
+                const idx = products.findIndex(p => p.product === data.product && p.expiry === data.expiry);
+                if (idx > -1) {
+                    products[idx].quantity -= data.quantity;
+                    if (products[idx].quantity < 0) products[idx].quantity = 0;
+                }
+            }
+            updateDashboard();
+            form.reset();
+            alert(type.charAt(0).toUpperCase() + type.slice(1) + ' recorded successfully!');
+        }
+
+        // Update Dashboard
+        function updateDashboard() {
+            document.getElementById('total-products').textContent = products.length;
+            const now = new Date();
+            const expiring = products.filter(p => {
+                const diff = new Date(p.expiry) - now;
+                return diff > 0 && diff < 30 * 24 * 60 * 60 * 1000;
+            });
+            document.getElementById('expiring-soon').textContent = expiring.length;
+            document.getElementById('recent-transactions').textContent = transactions.length;
+
+            const expiryList = document.getElementById('expiry-list');
+            expiryList.innerHTML = '';
+            expiring.forEach(item => {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'p-4 rounded alert-expiry';
+                alertDiv.innerHTML = `<p><strong>${item.product}</strong> expires on ${item.expiry} (Quantity: ${item.quantity})</p>`;
+                expiryList.appendChild(alertDiv);
+            });
+        }
+
+        // Generate Report
+        function generateReport() {
+            const period = document.getElementById('report-period').value;
+            const display = document.getElementById('report-display');
+            display.innerHTML = '';
+
+            let reportData = transactions;
+            const now = new Date();
+
+            if (period === 'daily') {
+                reportData = transactions.filter(t => new Date(t.date).toDateString() === now.toDateString());
+            } else if (period === 'weekly') {
+                const weekAgo = new Date();
+                weekAgo.setDate(now.getDate() - 7);
+                reportData = transactions.filter(t => new Date(t.date) >= weekAgo);
+            } else if (period === 'monthly') {
+                const monthAgo = new Date();
+                monthAgo.setMonth(now.getMonth() - 1);
+                reportData = transactions.filter(t => new Date(t.date) >= monthAgo);
+            } else if (period === 'annual') {
+                const yearAgo = new Date();
+                yearAgo.setFullYear(now.getFullYear() - 1);
+                reportData = transactions.filter(t => new Date(t.date) >= yearAgo);
+            }
+
+            if (reportData.length === 0) {
+                display.innerHTML = '<p>No transactions found for this period.</p>';
+                return;
+            }
+
+            reportData.forEach(item => {
+                display.innerHTML += `<p>${item.type.charAt(0).toUpperCase() + item.type.slice(1)}: <strong>${item.product}</strong> - Qty: ${item.quantity} - To/From: ${item.branch} on ${item.date}</p>`;
+            });
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', updateDashboard);
+    </script>
+</body>
+</html>
+</content>
+</create_file>
