@@ -1,77 +1,130 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Masrawy Warehouse Entry</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-  <style>
-    body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
-    .container { background: white; border-radius: 8px; padding: 20px; max-width: 500px; margin: auto; }
-    input, button { display: block; width: 100%; padding: 10px; margin-bottom: 10px; }
-    button { background: #d4af37; border: none; cursor: pointer; }
-    button:hover { background: #bfa233; }
-    .record-item { border-bottom: 1px solid #ddd; padding: 5px 0; }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Masrawy Warehouse Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #f5f5dc 0%, #d4af37 100%);
+            min-height: 100vh;
+            color: #000000;
+        }
+        .fade-in {
+            animation: fadeIn 1s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .shadow-lg-custom {
+            box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+        }
+        .bg-primary { background-color: #000000; }
+        .bg-secondary { background-color: #d4af37; }
+        .bg-accent { background-color: #bfa233; }
+        .text-primary { color: #000000; }
+        .text-secondary { color: #d4af37; }
+        .text-accent { color: #bfa233; }
+        .alert-expiry {
+            background-color: #fff8dc;
+            border-left: 4px solid #d4af37;
+            color: #000000;
+        }
+        button:hover.bg-secondary {
+            background-color: #bfa233 !important;
+        }
+        button:hover.bg-accent {
+            background-color: #a68f2a !important;
+        }
+    </style>
 </head>
-<body>
+<body class="fade-in">
+    <!-- Header -->
+    <header class="bg-primary text-secondary p-6 shadow-lg-custom">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="text-4xl font-bold">Masrawy</div>
+                <div class="text-lg">Warehouse Management System</div>
+            </div>
+        </div>
+    </header>
 
-  <div class="container">
-    <h2 class="text-2xl font-bold mb-4">سجّل بيانات المنتج</h2>
-    <form id="product-form">
-      <input type="text" id="productName" placeholder="اسم المنتج" required />
-      <input type="number" id="quantity" placeholder="الكمية" required />
-      <button type="submit">حفظ البيانات</button>
-    </form>
+    <!-- Form to enter user name -->
+    <div class="container mx-auto p-6">
+        <h2 class="text-2xl font-bold mb-4">Register Your Name</h2>
+        <form id="name-form" class="mb-6">
+            <input type="text" id="username" placeholder="Enter your name" required class="p-3 border rounded w-full max-w-md" />
+            <button type="submit" class="mt-4 bg-secondary px-6 py-2 rounded hover:bg-accent transition text-black">Submit</button>
+        </form>
 
-    <h2 class="text-xl font-bold mb-4">البيانات المسجلة</h2>
-    <div id="records-list"></div>
-  </div>
+        <h2 class="text-2xl font-bold mb-4">Registered Users</h2>
+        <ul id="users-list" class="max-w-md space-y-2"></ul>
+    </div>
 
-  <script>
-    // إعداد Firebase — استبدل القيم بقيم مشروعك
-    const firebaseConfig = {
-      apiKey: "AIzaSyD3BZ_KM7LQH-QLR9WQmqVXjrpGMVcdlns",
-      authDomain: "masrawy-site.firebaseapp.com",
-      databaseURL: "https://masrawy-site-default-rtdb.firebaseio.com",
-      projectId: "masrawy-site",
-      storageBucket: "masrawy-site.appspot.com",
-      messagingSenderId: "852741312702",
-      appId: "1:852741312702:web:d67a601d115303ca5a4eef"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const recordsRef = db.ref('records');
+    <script>
+        // Firebase config
+        const firebaseConfig = {
+          apiKey: "AIzaSyD3BZ_KM7LQH-QLR9WQmqVXjrpGMVcdlns",
+          authDomain: "masrawy-site.firebaseapp.com",
+          databaseURL: "https://masrawy-site-default-rtdb.firebaseio.com",
+          projectId: "masrawy-site",
+          storageBucket: "masrawy-site.appspot.com",
+          messagingSenderId: "852741312702",
+          appId: "1:852741312702:web:d67a601d115303ca5a4eef",
+          measurementId: "G-G85DB7L56C"
+        };
 
-    // عند الضغط "Submit" يتم حفظ البيانات في Firebase
-    document.getElementById('product-form').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const data = {
-        product: this.productName.value.trim(),
-        quantity: parseInt(this.quantity.value),
-        timestamp: Date.now()
-      };
-      recordsRef.push(data)
-        .then(() => this.reset())
-        .catch(err => alert('خطأ في الحفظ: ' + err.message));
-    });
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
 
-    // يعرض البيانات المسجّلة تلقائيًا في الصفحة
-    const recordsList = document.getElementById('records-list');
-    recordsRef.on('value', snapshot => {
-      const all = snapshot.val() || {};
-      recordsList.innerHTML = '';
-      Object.values(all).forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'record-item';
-        const date = new Date(item.timestamp).toLocaleString();
-        div.textContent = المنتج: ${item.product} – الكمية: ${item.quantity} – الوقت: ${date};
-        recordsList.appendChild(div);
-      });
-    });
-  </script>
+        // Reference to users node
+        const usersRef = database.ref('users');
 
+        // Form submission
+        const form = document.getElementById('name-form');
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const nameInput = document.getElementById('username');
+            const name = nameInput.value.trim();
+            if (name) {
+                // Save to Firebase
+                const newUserRef = usersRef.push();
+                newUserRef.set({
+                    name: name,
+                    timestamp: Date.now()
+                })
+                .then(() => {
+                    alert('Name saved successfully!');
+                    nameInput.value = '';
+                })
+                .catch(error => {
+                    alert('Error saving name: ' + error.message);
+                });
+            }
+        });
+
+        // Listen for changes and display users
+        const usersList = document.getElementById('users-list');
+        usersRef.on('value', snapshot => {
+            const users = snapshot.val();
+            usersList.innerHTML = '';
+            if (users) {
+                Object.entries(users).forEach(([id, user]) => {
+                    const li = document.createElement('li');
+                    const date = new Date(user.timestamp).toLocaleString();
+                    li.textContent = ${user.name} (Registered at: ${date});
+                    usersList.appendChild(li);
+                });
+            } else {
+                usersList.innerHTML = '<li>No users registered yet.</li>';
+            }
+        });
+    </script>
 </body>
 </html>
